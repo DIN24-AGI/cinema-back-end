@@ -1,1 +1,44 @@
+# ----------------------------------------
+# Yarn / npm
+node_modules/
+package-lock.json
+yarn.lock
+
+# ----------------------------------------
+# TypeScript
+dist/                 # tsc --outDir
+build/                # если используешь другое имя
+*.tsbuildinfo         # incremental compilation cache
+
+# ----------------------------------------
+# Tests / Coverage
+coverage/
+.nyc_output/
+
+# ----------------------------------------
+# Logs & runtime
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ----------------------------------------
+# Env & secrets
 .env
+.env.*                # .env.development, .env.local, etc.
+
+# ----------------------------------------
+# Editor / OS crap
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ----------------------------------------
+# Misc tools
+.eslintcache
+*.tgz                 # npm pack artifacts
+*.local               # e.g. docker-compose.override.local
