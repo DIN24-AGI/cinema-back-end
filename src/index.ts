@@ -12,12 +12,6 @@ app.use('/auth', authRouter);
 
 app.get('/me', authenticate, (req, res) => res.json({ user: req.user }));
 
-app.post('/cinemas', authenticate, requireSuper, (req, res) => {
-
-  res.json({ msg: 'cinema created (stub)' });
-});
-
-
 app.use('/admin', adminRouter);
 
 app.listen(3000, () => console.log(' API is running on http://localhost:3000'));
