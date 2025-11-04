@@ -6,9 +6,9 @@ yarn.lock
 
 # ----------------------------------------
 # TypeScript
-dist/                 # tsc --outDir
-build/                # если используешь другое имя
-*.tsbuildinfo         # incremental compilation cache
+dist/                 
+build/                
+*.tsbuildinfo         
 
 # ----------------------------------------
 # Tests / Coverage
@@ -27,7 +27,7 @@ yarn-error.log*
 # ----------------------------------------
 # Env & secrets
 .env
-.env.*                # .env.development, .env.local, etc.
+.env.*               
 
 # ----------------------------------------
 # Editor / OS crap
@@ -40,5 +40,5 @@ Thumbs.db
 # ----------------------------------------
 # Misc tools
 .eslintcache
-*.tgz                 # npm pack artifacts
-*.local               # e.g. docker-compose.override.local
+*.tgz                 
+*.local               
