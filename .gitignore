@@ -1,7 +1,6 @@
 # ----------------------------------------
 # Yarn / npm
 node_modules/
-package-lock.json
 yarn.lock
 
 # ----------------------------------------
@@ -42,3 +41,5 @@ Thumbs.db
 .eslintcache
 *.tgz                 
 *.local               
+
+.pass
