@@ -44,6 +44,3 @@ Thumbs.db
 *.local               
 
 
-Dockerfile
-package.json
-tsconfig.json
