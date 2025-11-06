@@ -58,6 +58,65 @@ adminRouter.post('/cinemas', authenticate, requireSuper, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
+adminRouter.get('/cinemas', authenticate, async (_, res) => {
+  const { rows } = await pool.query('SELECT * FROM cinema ORDER BY name');
+  res.json(rows);
+});
+
+adminRouter.get('/cinemas/:cinema_uid', authenticate, async (req, res) => {
+  const { cinema_uid } = req.params;
+  const { rows } = await pool.query('SELECT * FROM cinema WHERE uid = $1', [cinema_uid]);
+  if (rows.length === 0) return res.status(404).json({ msg: 'cinema not found' });
+  res.json(rows[0]);
+});
+
+adminRouter.put('/cinemas/:cinema_uid', authenticate, requireSuper, async (req, res) => {
+  const { cinema_uid } = req.params;
+  const { name, address, phone, active } = req.body;
+
+  const fields: string[] = [];
+  const values: any[] = [];
+  let i = 1;
+
+  if (name) { fields.push(`name = $${i++}`); values.push(name); }
+  if (address) { fields.push(`address = $${i++}`); values.push(address); }
+  if (phone) { fields.push(`phone = $${i++}`); values.push(phone); }
+  if (typeof active === 'boolean') { fields.push(`active = $${i++}`); values.push(active); }
+
+  if (fields.length === 0) return res.status(400).json({ msg: 'no fields to update' });
+
+  values.push(cinema_uid);
+
+  const { rows } = await pool.query(
+    `UPDATE cinema SET ${fields.join(', ')} WHERE uid = $${i} RETURNING *`,
+    values
+  );
+
+  if (rows.length === 0) return res.status(404).json({ msg: 'cinema not found' });
+  res.json(rows[0]);
+});
+
+adminRouter.delete('/cinemas/:cinema_uid', authenticate, requireSuper, async (req, res) => {
+  const { cinema_uid } = req.params;
+  await pool.query('DELETE FROM cinema WHERE uid = $1', [cinema_uid]);
+  res.json({ msg: 'cinema deleted' });
+});
+
+adminRouter.patch('/cinemas/:cinema_uid/activate', authenticate, requireSuper, async (req, res) => {
+  const { cinema_uid } = req.params;
+  const { active } = req.body;
+  if (typeof active !== 'boolean')
+    return res.status(400).json({ msg: 'active must be boolean' });
+
+  const { rows } = await pool.query(
+    'UPDATE cinema SET active = $1 WHERE uid = $2 RETURNING *',
+    [active, cinema_uid]
+  );
+  if (rows.length === 0) return res.status(404).json({ msg: 'cinema not found' });
+  res.json(rows[0]);
+});
+
+
 // ----------------------
 // HALLS
 // ----------------------
@@ -125,3 +184,28 @@ adminRouter.post('/halls', authenticate, requireSuper, async (req, res) => {
   }
 });
 
+// ----------------------
+// ACTIVATE / DEACTIVATE HALL
+// ----------------------
+adminRouter.patch('/halls/:hall_uid/activate', authenticate, requireSuper, async (req, res) => {
+  const { hall_uid } = req.params;
+  const { active } = req.body;
+
+  if (typeof active !== 'boolean')
+    return res.status(400).json({ msg: 'active must be boolean' });
+
+  try {
+    const { rows } = await pool.query(
+      'UPDATE hall SET active = $1, updated_at = NOW() WHERE uid = $2 RETURNING *',
+      [active, hall_uid]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ msg: 'hall not found' });
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to update hall active state' });
+  }
+});
