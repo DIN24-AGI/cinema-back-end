@@ -209,3 +209,74 @@ adminRouter.patch('/halls/:hall_uid/activate', authenticate, requireSuper, async
     res.status(500).json({ msg: 'failed to update hall active state' });
   }
 });
+
+// ----------------------
+// GET SINGLE HALL
+// ----------------------
+adminRouter.get('/hall/:hall_uid', authenticate, async (req, res) => {
+  const { hall_uid } = req.params;
+
+  try {
+    const { rows } = await pool.query('SELECT * FROM hall WHERE uid = $1', [hall_uid]);
+    if (rows.length === 0) return res.status(404).json({ msg: 'hall not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to fetch hall' });
+  }
+});
+
+// ----------------------
+// UPDATE HALL
+// ----------------------
+adminRouter.put('/halls/:hall_uid', authenticate, requireSuper, async (req, res) => {
+  const { hall_uid } = req.params;
+  const { name, rows, cols } = req.body;
+
+  const fields: string[] = [];
+  const values: any[] = [];
+  let i = 1;
+
+  if (name) { fields.push(`name = $${i++}`); values.push(name); }
+  if (rows) { fields.push(`rows = $${i++}`); values.push(rows); }
+  if (cols) { fields.push(`cols = $${i++}`); values.push(cols); }
+
+  if (fields.length === 0)
+    return res.status(400).json({ msg: 'no fields to update' });
+
+  values.push(hall_uid);
+
+  try {
+    const { rows: updated } = await pool.query(
+      `UPDATE hall SET ${fields.join(', ')}, updated_at = NOW()
+       WHERE uid = $${i} RETURNING *`,
+      values
+    );
+
+    if (updated.length === 0)
+      return res.status(404).json({ msg: 'hall not found' });
+
+    res.json(updated[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to update hall' });
+  }
+});
+
+// ----------------------
+// DELETE HALL
+// ----------------------
+adminRouter.delete('/halls/:hall_uid', authenticate, requireSuper, async (req, res) => {
+  const { hall_uid } = req.params;
+
+  try {
+    const { rowCount } = await pool.query('DELETE FROM hall WHERE uid = $1', [hall_uid]);
+    if (rowCount === 0)
+      return res.status(404).json({ msg: 'hall not found' });
+
+    res.json({ msg: 'hall deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to delete hall' });
+  }
+});
