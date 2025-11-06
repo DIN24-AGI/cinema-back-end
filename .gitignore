@@ -42,3 +42,8 @@ Thumbs.db
 .eslintcache
 *.tgz                 
 *.local               
+
+
+Dockerfile
+package.json
+tsconfig.json
