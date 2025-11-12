@@ -281,6 +281,37 @@ adminRouter.delete('/halls/:hall_uid', authenticate, requireSuper, async (req, r
   }
 });
 
+
+
+
+// =========================
+// GET SEATS BY HALL
+// =========================
+adminRouter.get('/hall/:hall_uid/seats', authenticate, async (req, res) => {
+  const { hall_uid } = req.params;
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT uid, row, number
+       FROM seat
+       WHERE hall_uid = $1
+       ORDER BY row, number`,
+      [hall_uid]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ msg: 'no seats found or hall not found' });
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Failed to fetch seats:', err);
+    res.status(500).json({ msg: 'failed to fetch seats' });
+  }
+});
+
+
+
+
 ////Showtime needed to create
 /// can not check reservations payments etc before we havwe showtime
 adminRouter.post('/showtimes', authenticate, requireSuper, async (req, res) => {
