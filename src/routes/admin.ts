@@ -280,3 +280,24 @@ adminRouter.delete('/halls/:hall_uid', authenticate, requireSuper, async (req, r
     res.status(500).json({ msg: 'failed to delete hall' });
   }
 });
+
+////Showtime needed to create
+/// can not check reservations payments etc before we havwe showtime
+adminRouter.post('/showtimes', authenticate, requireSuper, async (req, res) => {
+  const { movie_uid, hall_uid, starts_at, ends_at } = req.body;
+  if (!movie_uid || !hall_uid || !starts_at || !ends_at)
+    return res.status(400).json({ msg: 'missing fields' });
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO showtime (uid, movie_uid, hall_uid, starts_at, ends_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4)
+       RETURNING *`,
+      [movie_uid, hall_uid, starts_at, ends_at]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to create showtime' });
+  }
+});

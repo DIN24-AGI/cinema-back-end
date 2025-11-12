@@ -8,10 +8,19 @@ import { authenticate, requireSuper } from './middleware/auth';
 import { adminMoviesRouter } from './routes/admin_movies';
 import paymentsRouter from './routes/payments';
 
+import webhookRouter from "./routes/payments_webhook";
+
+
+
+
+
 const app = express();
 app.use(express.json());
 
-app.use('/payments', paymentsRouter);
+app.use("/payments", paymentsRouter);
+
+app.use("/payments", webhookRouter);
+
 app.use('/auth', authRouter);
 
 app.get('/me', authenticate, (req, res) => res.json({ user: req.user }));

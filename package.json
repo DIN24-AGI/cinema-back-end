@@ -20,7 +20,7 @@
 		"typescript": "^5.9.3"
 	},
 	"scripts": {
-		"dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+		"dev": "ts-node-dev --respawn --transpile-only src/index.ts",
 		"build": "tsc -p tsconfig.json",
 		"start": "node dist/app.js",
 		"db:test": "ts-node src/test-db.ts",
