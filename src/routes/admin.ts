@@ -280,3 +280,55 @@ adminRouter.delete('/halls/:hall_uid', authenticate, requireSuper, async (req, r
     res.status(500).json({ msg: 'failed to delete hall' });
   }
 });
+
+
+
+
+// =========================
+// GET SEATS BY HALL
+// =========================
+adminRouter.get('/hall/:hall_uid/seats', authenticate, async (req, res) => {
+  const { hall_uid } = req.params;
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT uid, row, number
+       FROM seat
+       WHERE hall_uid = $1
+       ORDER BY row, number`,
+      [hall_uid]
+    );
+
+    if (rows.length === 0)
+      return res.status(404).json({ msg: 'no seats found or hall not found' });
+
+    res.json(rows);
+  } catch (err) {
+    console.error('Failed to fetch seats:', err);
+    res.status(500).json({ msg: 'failed to fetch seats' });
+  }
+});
+
+
+
+
+////Showtime needed to create
+/// can not check reservations payments etc before we havwe showtime
+adminRouter.post('/showtimes', authenticate, requireSuper, async (req, res) => {
+  const { movie_uid, hall_uid, starts_at, ends_at } = req.body;
+  if (!movie_uid || !hall_uid || !starts_at || !ends_at)
+    return res.status(400).json({ msg: 'missing fields' });
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO showtime (uid, movie_uid, hall_uid, starts_at, ends_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4)
+       RETURNING *`,
+      [movie_uid, hall_uid, starts_at, ends_at]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'failed to create showtime' });
+  }
+});
