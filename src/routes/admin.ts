@@ -45,18 +45,21 @@ adminRouter.get('/cinemas/:city_uid', authenticate, async (req, res) => {
 });
 
 adminRouter.post('/cinemas', authenticate, requireSuper, async (req, res) => {
-  const { city_uid, name, address } = req.body;
+  const { city_uid, name, address, phone } = req.body;
+
   if (!city_uid || !name)
     return res.status(400).json({ msg: 'missing fields' });
 
   const { rows } = await pool.query(
-    `INSERT INTO cinema (uid, city_uid, name, address)
-     VALUES (gen_random_uuid(), $1, $2, $3)
+    `INSERT INTO cinema (uid, city_uid, name, address, phone)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4)
      RETURNING *`,
-    [city_uid, name, address || null]
+    [city_uid, name, address || null, phone || null]
   );
+
   res.status(201).json(rows[0]);
 });
+
 
 adminRouter.get('/cinemas', authenticate, async (_, res) => {
   const { rows } = await pool.query('SELECT * FROM cinema ORDER BY name');
