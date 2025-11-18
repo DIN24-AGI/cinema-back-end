@@ -45,18 +45,21 @@ adminRouter.get('/cinemas/:city_uid', authenticate, async (req, res) => {
 });
 
 adminRouter.post('/cinemas', authenticate, requireSuper, async (req, res) => {
-  const { city_uid, name, address } = req.body;
+  const { city_uid, name, address, phone } = req.body;
+
   if (!city_uid || !name)
     return res.status(400).json({ msg: 'missing fields' });
 
   const { rows } = await pool.query(
-    `INSERT INTO cinema (uid, city_uid, name, address)
-     VALUES (gen_random_uuid(), $1, $2, $3)
+    `INSERT INTO cinema (uid, city_uid, name, address, phone)
+     VALUES (gen_random_uuid(), $1, $2, $3, $4)
      RETURNING *`,
-    [city_uid, name, address || null]
+    [city_uid, name, address || null, phone || null]
   );
+
   res.status(201).json(rows[0]);
 });
+
 
 adminRouter.get('/cinemas', authenticate, async (_, res) => {
   const { rows } = await pool.query('SELECT * FROM cinema ORDER BY name');
@@ -130,8 +133,8 @@ adminRouter.get('/halls/:cinema_uid', authenticate, async (req, res) => {
 });
 
 adminRouter.post('/halls', authenticate, requireSuper, async (req, res) => {
-  const { cinema_uid, name, rows, cols } = req.body;
-  if (!cinema_uid || !name || !rows || !cols)
+  const { cinema_uid, name, rows, cols, active } = req.body;
+  if (!cinema_uid || !name || !rows || !cols || active === null)
     return res.status(400).json({ msg: 'missing fields' });
 
   const client = await pool.connect();
@@ -140,10 +143,10 @@ adminRouter.post('/halls', authenticate, requireSuper, async (req, res) => {
 
     // Create hall
     const { rows: inserted } = await client.query(
-      `INSERT INTO hall (uid, cinema_uid, name, rows, cols)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4)
+      `INSERT INTO hall (uid, cinema_uid, name, rows, cols, active)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)
        RETURNING *`,
-      [cinema_uid, name, rows, cols]
+      [cinema_uid, name, rows, cols, active]
     );
     const hall = inserted[0];
 
@@ -231,7 +234,7 @@ adminRouter.get('/hall/:hall_uid', authenticate, async (req, res) => {
 // ----------------------
 adminRouter.put('/halls/:hall_uid', authenticate, requireSuper, async (req, res) => {
   const { hall_uid } = req.params;
-  const { name, rows, cols } = req.body;
+  const { name, rows, cols, active } = req.body;
 
   const fields: string[] = [];
   const values: any[] = [];
@@ -240,6 +243,7 @@ adminRouter.put('/halls/:hall_uid', authenticate, requireSuper, async (req, res)
   if (name) { fields.push(`name = $${i++}`); values.push(name); }
   if (rows) { fields.push(`rows = $${i++}`); values.push(rows); }
   if (cols) { fields.push(`cols = $${i++}`); values.push(cols); }
+  if (typeof active === 'boolean') { fields.push(`active = $${i++}`); values.push(active); }
 
   if (fields.length === 0)
     return res.status(400).json({ msg: 'no fields to update' });
