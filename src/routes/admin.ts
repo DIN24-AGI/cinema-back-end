@@ -133,8 +133,8 @@ adminRouter.get('/halls/:cinema_uid', authenticate, async (req, res) => {
 });
 
 adminRouter.post('/halls', authenticate, requireSuper, async (req, res) => {
-  const { cinema_uid, name, rows, cols } = req.body;
-  if (!cinema_uid || !name || !rows || !cols)
+  const { cinema_uid, name, rows, cols, active } = req.body;
+  if (!cinema_uid || !name || !rows || !cols || active === null)
     return res.status(400).json({ msg: 'missing fields' });
 
   const client = await pool.connect();
@@ -143,10 +143,10 @@ adminRouter.post('/halls', authenticate, requireSuper, async (req, res) => {
 
     // Create hall
     const { rows: inserted } = await client.query(
-      `INSERT INTO hall (uid, cinema_uid, name, rows, cols)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4)
+      `INSERT INTO hall (uid, cinema_uid, name, rows, cols, active)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5)
        RETURNING *`,
-      [cinema_uid, name, rows, cols]
+      [cinema_uid, name, rows, cols, active]
     );
     const hall = inserted[0];
 
