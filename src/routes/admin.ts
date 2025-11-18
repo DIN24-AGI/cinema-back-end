@@ -234,7 +234,7 @@ adminRouter.get('/hall/:hall_uid', authenticate, async (req, res) => {
 // ----------------------
 adminRouter.put('/halls/:hall_uid', authenticate, requireSuper, async (req, res) => {
   const { hall_uid } = req.params;
-  const { name, rows, cols } = req.body;
+  const { name, rows, cols, active } = req.body;
 
   const fields: string[] = [];
   const values: any[] = [];
@@ -243,6 +243,7 @@ adminRouter.put('/halls/:hall_uid', authenticate, requireSuper, async (req, res)
   if (name) { fields.push(`name = $${i++}`); values.push(name); }
   if (rows) { fields.push(`rows = $${i++}`); values.push(rows); }
   if (cols) { fields.push(`cols = $${i++}`); values.push(cols); }
+  if (typeof active === 'boolean') { fields.push(`active = $${i++}`); values.push(active); }
 
   if (fields.length === 0)
     return res.status(400).json({ msg: 'no fields to update' });
