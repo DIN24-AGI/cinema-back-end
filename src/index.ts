@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { Pool } from "pg";
+
 dotenv.config();
 
 import { adminRouter } from "./routes/admin";
@@ -23,6 +25,11 @@ app.use(
 		credentials: true,
 	})
 );
+
+// PostgreSQL connection setup
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
+});
 
 app.post("/payments/webhook", express.raw({ type: "application/json" }), webhookRouter);
 
