@@ -12,61 +12,80 @@ import paymentsRouter from "./routes/payments";
 import webhookRouter from "./routes/payments_webhook";
 import { authenticate } from "./middleware/auth";
 
+if (!process.env.JWT_SECRET) {
+	console.error("JWT_SECRET missing");
+	process.exit(1);
+}
+if (!process.env.DATABASE_URL) {
+	console.warn("DATABASE_URL missing (using local PG vars if set)");
+}
+
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Enable CORS for all routes
+// CORS
 app.use(
 	cors({
 		origin:
 			process.env.NODE_ENV === "production"
-				? "https://lively-moss-05fbe2703.3.azurestaticapps.net"
+				? process.env.FRONTEND_URL || "https://lively-moss-05fbe2703.3.azurestaticapps.net"
 				: "http://localhost:5173",
 		credentials: true,
 	})
 );
 
-// PostgreSQL connection setup
-const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
-});
-
+// Stripe webhook BEFORE json()
 app.post("/payments/webhook", express.raw({ type: "application/json" }), webhookRouter);
 
+// JSON body parser
 app.use(express.json());
 
+// DB pool
+const pool = new Pool({
+	connectionString: process.env.DATABASE_URL,
+	ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
+});
+pool
+	.connect()
+	.then((c) => {
+		c.release();
+		console.log("DB connected");
+	})
+	.catch((err) => {
+		console.error("DB connection error", err);
+	});
+
+// Routes
 app.use("/payments", paymentsRouter);
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/admin/movies", adminMoviesRouter);
 
+app.get("/", (_req, res) => res.json({ service: "cinema-back-end", env: process.env.NODE_ENV }));
+
 app.get("/me", authenticate, (req, res) => res.json({ user: req.user }));
 
-// Health check endpoints
-app.get("/api/test", (req, res) => {
-	res.json({
-		message: "API is working!",
-		environment: process.env.NODE_ENV,
-	});
-});
+app.get("/api/test", (_req, res) => res.json({ message: "API is working!", environment: process.env.NODE_ENV }));
 
-app.get("/api/db-health", async (req, res) => {
+app.get("/api/db-health", async (_req, res) => {
 	try {
-		const result = await pool.query("SELECT NOW() as now, version() as version");
+		const r = await pool.query("SELECT NOW() as now, version() as version");
 		res.json({
 			status: "healthy",
-			timestamp: result.rows[0].now,
-			database: result.rows[0].version,
+			timestamp: r.rows[0].now,
+			database: r.rows[0].version,
 			environment: process.env.NODE_ENV,
 		});
-	} catch (error) {
-		res.status(500).json({
-			status: "unhealthy",
-			error: error instanceof Error ? error.message : "Unknown error",
-			environment: process.env.NODE_ENV,
-		});
+	} catch (e) {
+		res.status(500).json({ status: "unhealthy", error: (e as Error).message });
 	}
 });
 
-// Use the 'port' variable instead of hardcoded 3000
-app.listen(port, () => console.log(`🚀 API is running on http://localhost:${port}`));
+// Graceful shutdown
+process.on("SIGTERM", async () => {
+	console.log("SIGTERM received. Closing pool.");
+	await pool.end();
+	process.exit(0);
+});
+
+app.listen(port, () => console.log(`API listening on ${port}`));
