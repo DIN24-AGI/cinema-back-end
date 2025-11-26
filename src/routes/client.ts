@@ -14,26 +14,27 @@ clientRouter.get("/cities", async (req, res) => {
 clientRouter.get("/cinemas", async (req, res) => {
   const { rows } = await pool.query(
     "SELECT * FROM cinema",
-
   );
   res.json(rows);
 });
 
-// Get movies for a cinema
+// Get movies 
 clientRouter.get("/movies", async (req, res) => {
-  const { cinemaId, date } = req.query;
-  // join movie -> showing -> hall -> cinema
   const { rows } = await pool.query(
-    `SELECT m.*, s.start_time, h.name AS hall_name, c.name AS cinema_name
-     FROM movie m
-     JOIN showing s ON s.movie_id = m.id
-     JOIN hall h ON h.uid = s.hall_uid
-     JOIN cinema c ON c.uid = h.cinema_uid
-     WHERE h.cinema_uid = $1
-     AND ($2::date IS NULL OR s.start_time::date = $2::date)`,
-    [cinemaId, date || null]
-  );
+    "SELECT * FROM movie")
   res.json(rows);
 });
+
+//Get movie by ID
+clientRouter.get("/movies/:movie_uid", async (req, res) => {
+  const { movie_uid } = req.params 
+  const { rows } = await pool.query(
+    "SELECT * FROM movie WHERE uid = $1", [ movie_uid, 
+    
+    ])
+  if (rows.length === 0) return res.status(404).json( {msg: "Movie not found"})
+  res.json(rows[0]);
+});
+
 
 export default clientRouter;
