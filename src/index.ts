@@ -11,6 +11,7 @@ import { adminMoviesRouter } from "./routes/admin_movies";
 import paymentsRouter from "./routes/payments";
 import webhookRouter from "./routes/payments_webhook";
 import { authenticate } from "./middleware/auth";
+import  clientRouter  from "./routes/client"
 
 if (!process.env.JWT_SECRET) {
 	console.error("JWT_SECRET missing");
@@ -60,6 +61,7 @@ app.use("/payments", paymentsRouter);
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/admin/movies", adminMoviesRouter);
+app.use("/api", clientRouter)
 
 app.get("/", (_req, res) => res.json({ service: "cinema-back-end", env: process.env.NODE_ENV }));
 
