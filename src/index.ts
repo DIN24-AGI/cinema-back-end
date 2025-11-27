@@ -11,7 +11,7 @@ import { adminMoviesRouter } from "./routes/admin_movies";
 import paymentsRouter from "./routes/payments";
 import webhookRouter from "./routes/payments_webhook";
 import { authenticate } from "./middleware/auth";
-import  clientRouter  from "./routes/client"
+import clientRouter from "./routes/client";
 
 if (!process.env.JWT_SECRET) {
 	console.error("JWT_SECRET missing");
@@ -25,12 +25,22 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // CORS
+const allowedOrigins = [
+	process.env.FRONTEND_URL, // optional env override
+	"https://lively-moss-05fbe2703.3.azurestaticapps.net",
+	"https://orange-wave-0372a7903.3.azurestaticapps.net/",
+	"http://localhost:5173",
+	"http://localhost:5174",
+].filter(Boolean) as string[];
+
 app.use(
 	cors({
-		origin:
-			process.env.NODE_ENV === "production"
-				? process.env.FRONTEND_URL || "https://lively-moss-05fbe2703.3.azurestaticapps.net"
-				: "http://localhost:5173",
+		origin: (origin, cb) => {
+			// allow non-browser clients (Thunder Client, curl)
+			if (!origin) return cb(null, true);
+			if (allowedOrigins.includes(origin)) return cb(null, true);
+			return cb(new Error(`Not allowed by CORS: ${origin}`));
+		},
 		credentials: true,
 	})
 );
@@ -61,7 +71,7 @@ app.use("/payments", paymentsRouter);
 app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/admin/movies", adminMoviesRouter);
-app.use("/api", clientRouter)
+app.use("/api", clientRouter);
 
 app.get("/", (_req, res) => res.json({ service: "cinema-back-end", env: process.env.NODE_ENV }));
 
