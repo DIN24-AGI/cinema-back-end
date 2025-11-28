@@ -28,7 +28,7 @@ const port = process.env.PORT || 3000;
 const allowedOrigins = [
 	process.env.FRONTEND_URL, // optional env override
 	"https://lively-moss-05fbe2703.3.azurestaticapps.net",
-	"https://orange-wave-0372a7903.3.azurestaticapps.net/",
+	"https://orange-wave-0372a7903.3.azurestaticapps.net",
 	"http://localhost:5173",
 	"http://localhost:5174",
 ].filter(Boolean) as string[];
