@@ -477,3 +477,58 @@ adminRouter.delete("/showtimes/:showtime_uid", authenticate, requireSuper, async
 		res.status(500).json({ msg: "failed to delete showtime" });
 	}
 });
+
+adminRouter.patch(
+  "/showtimes/:showtime_uid/price",
+  authenticate,
+  requireSuper,
+  async (req, res) => {
+    const { showtime_uid } = req.params;
+    const { adult_price, child_price } = req.body;
+
+    // If empty body
+    if (adult_price === undefined && child_price === undefined) {
+      return res.status(400).json({ msg: "no fields to update" });
+    }
+
+    try {
+      const fields = [];
+      const values = [];
+      let i = 1;
+
+      if (adult_price !== undefined) {
+        fields.push(`adult_price = $${i++}`);
+        values.push(adult_price);
+      }
+
+      if (child_price !== undefined) {
+        fields.push(`child_price = $${i++}`);
+        values.push(child_price);
+      }
+
+      values.push(showtime_uid); 
+
+      const sql = `
+        UPDATE showtime
+        SET ${fields.join(", ")},
+            updated_at = NOW()
+        WHERE uid = $${i}
+        RETURNING *;
+      `;
+
+      const { rows } = await pool.query(sql, values);
+
+      if (rows.length === 0) {
+        return res.status(404).json({ msg: "showtime not found" });
+      }
+
+      res.json({
+        msg: "showtime updated",
+        showtime: rows[0],
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ msg: "failed to update showtime prices" });
+    }
+  }
+);
