@@ -72,7 +72,7 @@ app.use("/auth", authRouter);
 app.use("/admin", adminRouter);
 app.use("/admin/movies", adminMoviesRouter);
 app.use("/api", clientRouter);
-
+app.use("/api/client", clientRouter);
 app.get("/", (_req, res) => res.json({ service: "cinema-back-end", env: process.env.NODE_ENV }));
 
 app.get("/me", authenticate, (req, res) => res.json({ user: req.user }));
