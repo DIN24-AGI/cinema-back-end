@@ -74,5 +74,77 @@ clientRouter.get("/showtimes", async (req, res) => {
   }
 });
 
+//GET showitime by UID
+clientRouter.get("/client/showtimes/:uid", async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const showtime = await pool.query(
+      `SELECT s.*, m.title, m.poster_url, h.name AS hall_name
+       FROM showtime s
+       JOIN movie m ON s.movie_uid = m.uid
+       JOIN hall h ON s.hall_uid = h.uid
+       WHERE s.uid = $1`,
+      [uid]
+    );
+
+    if (showtime.rows.length === 0) {
+      return res.status(404).json({ message: "Showtime not found" });
+    }
+
+    res.json(showtime.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Fail to fetch"})
+  }
+});
+
+// GET seats for a showtime
+clientRouter.get("/client/seats", async (req, res) => {
+  const { showtime_uid } = req.query;
+
+  if (!showtime_uid) {
+    return res.status(400).json({ error: "Missing showtime_uid" });
+  }
+
+  try {
+    // 1. Get hall_uid for the showtime
+    const showtimeRes = await pool.query(
+      "SELECT hall_uid FROM showtime WHERE uid = $1",
+      [showtime_uid]
+    );
+
+    if (showtimeRes.rows.length === 0) {
+      return res.status(404).json({ error: "Showtime not found" });
+    }
+
+    const hall_uid = showtimeRes.rows[0].hall_uid;
+
+    // 2. Get all seats for that hall
+    const seatsRes = await pool.query(
+      `
+      SELECT 
+        s.uid AS seat_uid,
+        s.row,
+        s.number,
+        COALESCE(r.status, 'free') AS seat_status
+      FROM seat s
+      LEFT JOIN reservation r
+        ON r.seat_uid = s.uid
+        AND r.showtime_uid = $1
+      WHERE s.hall_uid = $2
+      ORDER BY s.row, s.number
+      `,
+      [showtime_uid, hall_uid]
+    );
+
+    res.json(seatsRes.rows);
+  } catch (err) {
+    console.error("Failed to fetch seats:", err);
+    res.status(500).json({ error: "Failed to load seats" });
+  }
+});
+
+
 
 export default clientRouter;
