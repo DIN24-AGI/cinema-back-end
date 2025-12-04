@@ -18,12 +18,56 @@ clientRouter.get("/cinemas", async (req, res) => {
   res.json(rows);
 });
 
-// Get movies 
+// Get movies with optional filtering for cinema and date
+// GET /movies?cinema_uid=...&date=YYYY-MM-DD
 clientRouter.get("/movies", async (req, res) => {
-  const { rows } = await pool.query(
-    "SELECT * FROM movie")
-  res.json(rows);
+  try {
+    const { cinema_uid, date } = req.query;
+
+    const params: any[] = [];
+    const whereClauses: string[] = ["m.active = true"]; 
+
+    if (cinema_uid && typeof cinema_uid === "string") {
+      params.push(cinema_uid);
+      whereClauses.push(`c.uid = $${params.length}`);
+    }
+
+    if (date && typeof date === "string") {
+      params.push(date);
+      whereClauses.push(`DATE(s.starts_at) = $${params.length}`);
+    }
+
+    const query = `
+      SELECT 
+        m.*,
+        json_agg(
+          json_build_object(
+            'uid', s.uid,
+            'starts_at', s.starts_at,
+            'ends_at', s.ends_at,
+            'hall_name', h.name,
+            'cinema_name', c.name
+          ) ORDER BY s.starts_at
+        ) FILTER (WHERE s.uid IS NOT NULL) AS showtimes
+      FROM movie m
+      LEFT JOIN showtime s ON s.movie_uid = m.uid
+      LEFT JOIN hall h ON h.uid = s.hall_uid
+      LEFT JOIN cinema c ON c.uid = h.cinema_uid
+      ${whereClauses.length > 0 ? "WHERE " + whereClauses.join(" AND ") : ""}
+      GROUP BY m.uid
+      ORDER BY m.title
+    `;
+
+    const { rows } = await pool.query(query, params);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Failed to fetch movies:", err);
+    res.status(500).json({ msg: "Failed to fetch movies" });
+  }
 });
+
+
 
 //Get movie by ID
 clientRouter.get("/movies/:movie_uid", async (req, res) => {
