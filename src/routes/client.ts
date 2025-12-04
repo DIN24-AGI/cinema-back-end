@@ -143,6 +143,36 @@ clientRouter.get("/client/showtimes/:uid", async (req, res) => {
   }
 });
 
+// GET showtimes for a movie (next 7 days)
+clientRouter.get("/movies/:uid/showtimes", async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    const query = `
+      SELECT
+        s.uid,
+        s.starts_at,
+        s.ends_at,
+        h.name AS hall_name,
+        c.name AS cinema_name
+      FROM showtime s
+      JOIN hall h ON s.hall_uid = h.uid
+      JOIN cinema c ON h.cinema_uid = c.uid
+      WHERE s.movie_uid = $1
+        AND s.starts_at >= NOW()
+        AND s.starts_at <= NOW() + INTERVAL '7 days'
+      ORDER BY s.starts_at
+    `;
+
+    const { rows } = await pool.query(query, [uid]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to fetch showtimes" });
+  }
+});
+
+
 // GET seats for a showtime
 clientRouter.get("/client/seats", async (req, res) => {
   const { showtime_uid } = req.query;
