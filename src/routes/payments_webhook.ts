@@ -12,32 +12,51 @@ const webhookHandler = async (req: Request, res: Response) => {
   try {
     event = stripe.webhooks.constructEvent(req.body, sig!, endpointSecret);
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    console.error(" Webhook signature verification failed:", err);
     return res.status(400).send("Webhook Error");
   }
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const payment_uid = session.metadata?.payment_uid;
 
-    if (payment_uid) {
-      try {
-        await pool.query(
-          `UPDATE payment SET status='paid', updated_at=NOW() WHERE uid=$1`,
-          [payment_uid]
-        );
-        await pool.query(
-          `UPDATE reservation
-           SET status='paid', paid_at=NOW(), expires_at=NULL
-           WHERE payment_uid=$1`,
-          [payment_uid]
-        );
-        console.log(`Payment confirmed for ${payment_uid}`);
-      } catch (e) {
-        console.error("Failed to update DB after payment:", e);
-      }
-    } else {
-      console.warn("Missing payment_uid in metadata", session.id);
+    const payment_uid = session.metadata?.payment_uid;
+    const email = session.customer_details?.email ?? null;
+
+    console.log(" Stripe webhook received:");
+    console.log("   payment_uid =", payment_uid);
+    console.log("   email       =", email);
+
+    if (!payment_uid) {
+      console.warn(" Missing payment_uid in metadata");
+      return res.json({ received: true });
+    }
+
+    try {
+      // Update payment
+      await pool.query(
+        `UPDATE payment 
+         SET status='paid',
+             updated_at=NOW(),
+             user_email=$2
+         WHERE uid=$1`,
+        [payment_uid, email]
+      );
+
+      // Update reservations
+      await pool.query(
+        `UPDATE reservation
+         SET status='paid',
+             user_email=$2,
+             paid_at=NOW(),
+             expires_at=NULL
+         WHERE payment_uid=$1`,
+        [payment_uid, email]
+      );
+
+      console.log(`Payment processed: ${payment_uid}`);
+    } catch (e) {
+      console.error(" Failed to update DB", e);
+      return res.status(500).send("DB Error");
     }
   }
 
