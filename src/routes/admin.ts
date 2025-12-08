@@ -538,7 +538,7 @@ adminRouter.patch(
 
 
 // add new admin
-adminRouter.post("/admin", authenticate, requireSuper, async (req, res) => {
+adminRouter.post("/users", authenticate, requireSuper, async (req, res) => {
 	try {
 	const { email, password, role  } = req.body;
 
@@ -552,7 +552,7 @@ adminRouter.post("/admin", authenticate, requireSuper, async (req, res) => {
       password_hash,
       role === "super" ? "super" : "regular"
     ];
-	const { rows } = await pool.query("INSERT INTO administrator (uid, email, password_hash, role) VALUES ($1, $2, $3, $4 RETURNING uid, email, role", params);
+	const { rows } = await pool.query("INSERT INTO administrator (uid, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *", params);
 	res.status(201).json({
     msg: "Administrator created successfully",
     admin: rows[0]
