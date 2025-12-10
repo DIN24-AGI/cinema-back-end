@@ -2,8 +2,7 @@ import { Router } from "express";
 import { pool } from "../db";
 import { authenticate, requireSuper } from "../middleware/auth";
 import bcrypt from "bcrypt";
-import { v4 as uuidv4 } from "uuid"
-
+import { v4 as uuidv4 } from "uuid";
 
 export const adminRouter = Router();
 
@@ -323,17 +322,26 @@ adminRouter.get("/hall/:hall_uid/seats", authenticate, async (req, res) => {
 });
 
 ////Showtime needed to create
-/// can not check reservations payments etc before we havwe showtime
+/// can not check reservations payments etc before we have showtime
 adminRouter.post("/showtimes", authenticate, requireSuper, async (req, res) => {
-	const { movie_uid, hall_uid, starts_at, ends_at } = req.body;
-	if (!movie_uid || !hall_uid || !starts_at || !ends_at) return res.status(400).json({ msg: "missing fields" });
+	const { movie_uid, hall_uid, starts_at, ends_at, adult_price, child_price } = req.body;
+	if (!movie_uid || !hall_uid || !starts_at || !ends_at) {
+		return res.status(400).json({ msg: "missing fields" });
+	}
+
+	// Validate prices if provided
+	const ap = adult_price !== undefined ? Number(adult_price) : null;
+	const cp = child_price !== undefined ? Number(child_price) : null;
+	if ((ap !== null && (Number.isNaN(ap) || ap < 0)) || (cp !== null && (Number.isNaN(cp) || cp < 0))) {
+		return res.status(400).json({ msg: "invalid price values" });
+	}
 
 	try {
 		const { rows } = await pool.query(
-			`INSERT INTO showtime (uid, movie_uid, hall_uid, starts_at, ends_at)
-       VALUES (gen_random_uuid(), $1, $2, $3, $4)
+			`INSERT INTO showtime (uid, movie_uid, hall_uid, starts_at, ends_at, adult_price, child_price)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6)
        RETURNING *`,
-			[movie_uid, hall_uid, starts_at, ends_at]
+			[movie_uid, hall_uid, starts_at, ends_at, ap, cp]
 		);
 		res.status(201).json(rows[0]);
 	} catch (err) {
@@ -481,37 +489,33 @@ adminRouter.delete("/showtimes/:showtime_uid", authenticate, requireSuper, async
 	}
 });
 
-adminRouter.patch(
-  "/showtimes/:showtime_uid/price",
-  authenticate,
-  requireSuper,
-  async (req, res) => {
-    const { showtime_uid } = req.params;
-    const { adult_price, child_price } = req.body;
+adminRouter.patch("/showtimes/:showtime_uid/price", authenticate, requireSuper, async (req, res) => {
+	const { showtime_uid } = req.params;
+	const { adult_price, child_price } = req.body;
 
-    // If empty body
-    if (adult_price === undefined && child_price === undefined) {
-      return res.status(400).json({ msg: "no fields to update" });
-    }
+	// If empty body
+	if (adult_price === undefined && child_price === undefined) {
+		return res.status(400).json({ msg: "no fields to update" });
+	}
 
-    try {
-      const fields = [];
-      const values = [];
-      let i = 1;
+	try {
+		const fields = [];
+		const values = [];
+		let i = 1;
 
-      if (adult_price !== undefined) {
-        fields.push(`adult_price = $${i++}`);
-        values.push(adult_price);
-      }
+		if (adult_price !== undefined) {
+			fields.push(`adult_price = $${i++}`);
+			values.push(adult_price);
+		}
 
-      if (child_price !== undefined) {
-        fields.push(`child_price = $${i++}`);
-        values.push(child_price);
-      }
+		if (child_price !== undefined) {
+			fields.push(`child_price = $${i++}`);
+			values.push(child_price);
+		}
 
-      values.push(showtime_uid); 
+		values.push(showtime_uid);
 
-      const sql = `
+		const sql = `
         UPDATE showtime
         SET ${fields.join(", ")},
             updated_at = NOW()
@@ -519,113 +523,105 @@ adminRouter.patch(
         RETURNING *;
       `;
 
-      const { rows } = await pool.query(sql, values);
+		const { rows } = await pool.query(sql, values);
 
-      if (rows.length === 0) {
-        return res.status(404).json({ msg: "showtime not found" });
-      }
+		if (rows.length === 0) {
+			return res.status(404).json({ msg: "showtime not found" });
+		}
 
-      res.json({
-        msg: "showtime updated",
-        showtime: rows[0],
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ msg: "failed to update showtime prices" });
-    }
-  }
-);
-
+		res.json({
+			msg: "showtime updated",
+			showtime: rows[0],
+		});
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ msg: "failed to update showtime prices" });
+	}
+});
 
 // add new admin
 adminRouter.post("/users", authenticate, requireSuper, async (req, res) => {
 	try {
-	const { email, password, role  } = req.body;
+		const { email, password, role } = req.body;
 
-	if (!email || !password) return res.status(400).json({ msg: "Email & password required" });
+		if (!email || !password) return res.status(400).json({ msg: "Email & password required" });
 
-	const password_hash = await bcrypt.hash(password, 10);
-	const uid = uuidv4();
-  const params = [
-      uid,
-      email,
-      password_hash,
-      role === "super" ? "super" : "regular"
-    ];
-	const { rows } = await pool.query("INSERT INTO administrator (uid, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *", params);
-	res.status(201).json({
-    msg: "Administrator created successfully",
-    admin: rows[0]
-    });
+		const password_hash = await bcrypt.hash(password, 10);
+		const uid = uuidv4();
+		const params = [uid, email, password_hash, role === "super" ? "super" : "regular"];
+		const { rows } = await pool.query(
+			"INSERT INTO administrator (uid, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *",
+			params
+		);
+		res.status(201).json({
+			msg: "Administrator created successfully",
+			admin: rows[0],
+		});
 	} catch (err: any) {
 		console.error("Failed to create admin:", err);
-		res.status(500).json({msg:"Failed to create admin"})
+		res.status(500).json({ msg: "Failed to create admin" });
 	}
-
-	
 });
 
 //get users
 adminRouter.get("/users", authenticate, requireSuper, async (req, res) => {
 	const { rows } = await pool.query("SELECT * from administrator");
 	res.json(rows);
-})
+});
 
 //update user's role
 adminRouter.put("/users/:uid", authenticate, requireSuper, async (req, res) => {
-  try {
-    const { uid } = req.params;
-    const { role } = req.body;
+	try {
+		const { uid } = req.params;
+		const { role } = req.body;
 
-    if (!role || !["super", "regular"].includes(role)) {
-      return res.status(400).json({ msg: "Invalid role value" });
-    }
+		if (!role || !["super", "regular"].includes(role)) {
+			return res.status(400).json({ msg: "Invalid role value" });
+		}
 
-    const query = `
+		const query = `
       UPDATE administrator
       SET role = $1
       WHERE uid = $2
       RETURNING uid, email, role
     `;
 
-    const { rows } = await pool.query(query, [role, uid]);
+		const { rows } = await pool.query(query, [role, uid]);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ msg: "User not found" });
-    }
+		if (rows.length === 0) {
+			return res.status(404).json({ msg: "User not found" });
+		}
 
-    res.json({
-      msg: "Role updated successfully",
-      user: rows[0]
-    });
-
-  } catch (err) {
-    console.error("Failed to update user:", err);
-    res.status(500).json({ msg: "Failed to update user" });
-  }
+		res.json({
+			msg: "Role updated successfully",
+			user: rows[0],
+		});
+	} catch (err) {
+		console.error("Failed to update user:", err);
+		res.status(500).json({ msg: "Failed to update user" });
+	}
 });
 
 //delete user
 adminRouter.delete("/users/:uid", authenticate, requireSuper, async (req, res) => {
-  try {
-    const { uid } = req.params;
+	try {
+		const { uid } = req.params;
 
-    const query = `
+		const query = `
       DELETE FROM administrator
       WHERE uid = $1
       RETURNING uid
     `;
 
-    const { rows } = await pool.query(query, [uid]);
+		const { rows } = await pool.query(query, [uid]);
 
-    if (rows.length === 0) {
-      return res.status(404).json({ msg: "User not found" });
-    }
+		if (rows.length === 0) {
+			return res.status(404).json({ msg: "User not found" });
+		}
 
-    res.json({ msg: "User deleted successfully" });
-
-  } catch (err) {
-    console.error("Failed to delete user:", err);
-    res.status(500).json({ msg: "Failed to delete user" });
-  }
+		res.json({ msg: "User deleted successfully" });
+	} catch (err) {
+		console.error("Failed to delete user:", err);
+		res.status(500).json({ msg: "Failed to delete user" });
+	}
 });
