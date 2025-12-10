@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { pool } from "../db";
 import { authenticate, requireSuper } from "../middleware/auth";
+import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid"
+
 
 export const adminRouter = Router();
 
@@ -532,3 +535,97 @@ adminRouter.patch(
     }
   }
 );
+
+
+// add new admin
+adminRouter.post("/users", authenticate, requireSuper, async (req, res) => {
+	try {
+	const { email, password, role  } = req.body;
+
+	if (!email || !password) return res.status(400).json({ msg: "Email & password required" });
+
+	const password_hash = await bcrypt.hash(password, 10);
+	const uid = uuidv4();
+  const params = [
+      uid,
+      email,
+      password_hash,
+      role === "super" ? "super" : "regular"
+    ];
+	const { rows } = await pool.query("INSERT INTO administrator (uid, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *", params);
+	res.status(201).json({
+    msg: "Administrator created successfully",
+    admin: rows[0]
+    });
+	} catch (err: any) {
+		console.error("Failed to create admin:", err);
+		res.status(500).json({msg:"Failed to create admin"})
+	}
+
+	
+});
+
+//get users
+adminRouter.get("/users", authenticate, requireSuper, async (req, res) => {
+	const { rows } = await pool.query("SELECT * from administrator");
+	res.json(rows);
+})
+
+//update user's role
+adminRouter.put("/users/:uid", authenticate, requireSuper, async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { role } = req.body;
+
+    if (!role || !["super", "regular"].includes(role)) {
+      return res.status(400).json({ msg: "Invalid role value" });
+    }
+
+    const query = `
+      UPDATE administrator
+      SET role = $1
+      WHERE uid = $2
+      RETURNING uid, email, role
+    `;
+
+    const { rows } = await pool.query(query, [role, uid]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.json({
+      msg: "Role updated successfully",
+      user: rows[0]
+    });
+
+  } catch (err) {
+    console.error("Failed to update user:", err);
+    res.status(500).json({ msg: "Failed to update user" });
+  }
+});
+
+//delete user
+adminRouter.delete("/users/:uid", authenticate, requireSuper, async (req, res) => {
+  try {
+    const { uid } = req.params;
+
+    const query = `
+      DELETE FROM administrator
+      WHERE uid = $1
+      RETURNING uid
+    `;
+
+    const { rows } = await pool.query(query, [uid]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    res.json({ msg: "User deleted successfully" });
+
+  } catch (err) {
+    console.error("Failed to delete user:", err);
+    res.status(500).json({ msg: "Failed to delete user" });
+  }
+});
