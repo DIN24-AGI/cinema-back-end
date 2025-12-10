@@ -10,7 +10,7 @@ import { adminRouter } from "./routes/admin";
 import { authRouter } from "./routes/auth";
 import { adminMoviesRouter } from "./routes/admin_movies";
 import paymentsRouter from "./routes/payments";
-import webhookRouter from "./routes/payments_webhook";
+import webhookHandler from "./routes/payments_webhook";
 import { authenticate } from "./middleware/auth";
 import clientRouter from "./routes/client";
 import { initSeatsWSS } from "./ws/seats";   // <-- NEW
@@ -47,7 +47,7 @@ app.use(
 );
 
 // Stripe webhook BEFORE json()
-app.post("/payments/webhook", express.raw({ type: "application/json" }), webhookRouter);
+app.post("/payments/webhook", express.raw({ type: "application/json" }), webhookHandler);
 
 // JSON body parser
 app.use(express.json());
