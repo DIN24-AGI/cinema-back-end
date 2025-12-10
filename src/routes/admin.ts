@@ -280,6 +280,63 @@ adminRouter.put("/halls/:hall_uid", authenticate, requireSuper, async (req, res)
 	}
 });
 
+// DELETE and RECREATE seats for a hall
+adminRouter.post("/halls/:hall_uid/recreate-seats", authenticate, requireSuper, async (req, res) => {
+	const { hall_uid } = req.params;
+
+	const client = await pool.connect();
+	try {
+		await client.query("BEGIN");
+
+		// Get hall details
+		const { rows: hallRows } = await client.query("SELECT * FROM hall WHERE uid = $1", [hall_uid]);
+		if (hallRows.length === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ msg: "hall not found" });
+		}
+
+		const hall = hallRows[0];
+		const { rows: numRows, cols: numCols } = hall;
+
+		// Delete existing seats
+		await client.query("DELETE FROM seat WHERE hall_uid = $1", [hall_uid]);
+
+		// Create new seats
+		const seatValues: string[] = [];
+		const params: any[] = [];
+		let paramIndex = 1;
+
+		for (let r = 1; r <= numRows; r++) {
+			for (let c = 1; c <= numCols; c++) {
+				seatValues.push(
+					`(${[`gen_random_uuid()`, `$${paramIndex++}`, `$${paramIndex++}`, `$${paramIndex++}`].join(", ")})`
+				);
+				params.push(hall_uid, r, c);
+			}
+		}
+
+		const insertSeatsSQL = `
+      INSERT INTO seat (uid, hall_uid, row, number)
+      VALUES ${seatValues.join(", ")};
+    `;
+
+		await client.query(insertSeatsSQL, params);
+
+		await client.query("COMMIT");
+		res.json({
+			msg: "seats recreated successfully",
+			seats_created: numRows * numCols,
+			hall_uid: hall_uid,
+		});
+	} catch (err) {
+		await client.query("ROLLBACK");
+		console.error(err);
+		res.status(500).json({ msg: "failed to recreate seats" });
+	} finally {
+		client.release();
+	}
+});
+
 // ----------------------
 // DELETE HALL
 // ----------------------
