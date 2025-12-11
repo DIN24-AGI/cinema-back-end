@@ -47,7 +47,7 @@ adminRouter.delete("/cities/:city_uid", authenticate, requireSuper, async (req, 
 // ----------------------
 // CINEMAS
 // ----------------------
-adminRouter.get("/cinemas/:city_uid", authenticate, async (req, res) => {
+adminRouter.get("/cinemas/by-city/:city_uid", authenticate, async (req, res) => {
 	const { city_uid } = req.params;
 	const { rows } = await pool.query("SELECT * FROM cinema WHERE city_uid = $1 ORDER BY name", [city_uid]);
 	res.json(rows);
