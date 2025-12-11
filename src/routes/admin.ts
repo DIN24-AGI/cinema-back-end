@@ -280,6 +280,63 @@ adminRouter.put("/halls/:hall_uid", authenticate, requireSuper, async (req, res)
 	}
 });
 
+// DELETE and RECREATE seats for a hall
+adminRouter.post("/halls/:hall_uid/recreate-seats", authenticate, requireSuper, async (req, res) => {
+	const { hall_uid } = req.params;
+
+	const client = await pool.connect();
+	try {
+		await client.query("BEGIN");
+
+		// Get hall details
+		const { rows: hallRows } = await client.query("SELECT * FROM hall WHERE uid = $1", [hall_uid]);
+		if (hallRows.length === 0) {
+			await client.query("ROLLBACK");
+			return res.status(404).json({ msg: "hall not found" });
+		}
+
+		const hall = hallRows[0];
+		const { rows: numRows, cols: numCols } = hall;
+
+		// Delete existing seats
+		await client.query("DELETE FROM seat WHERE hall_uid = $1", [hall_uid]);
+
+		// Create new seats
+		const seatValues: string[] = [];
+		const params: any[] = [];
+		let paramIndex = 1;
+
+		for (let r = 1; r <= numRows; r++) {
+			for (let c = 1; c <= numCols; c++) {
+				seatValues.push(
+					`(${[`gen_random_uuid()`, `$${paramIndex++}`, `$${paramIndex++}`, `$${paramIndex++}`].join(", ")})`
+				);
+				params.push(hall_uid, r, c);
+			}
+		}
+
+		const insertSeatsSQL = `
+      INSERT INTO seat (uid, hall_uid, row, number)
+      VALUES ${seatValues.join(", ")};
+    `;
+
+		await client.query(insertSeatsSQL, params);
+
+		await client.query("COMMIT");
+		res.json({
+			msg: "seats recreated successfully",
+			seats_created: numRows * numCols,
+			hall_uid: hall_uid,
+		});
+	} catch (err) {
+		await client.query("ROLLBACK");
+		console.error(err);
+		res.status(500).json({ msg: "failed to recreate seats" });
+	} finally {
+		client.release();
+	}
+});
+
 // ----------------------
 // DELETE HALL
 // ----------------------
@@ -305,7 +362,7 @@ adminRouter.get("/hall/:hall_uid/seats", authenticate, async (req, res) => {
 
 	try {
 		const { rows } = await pool.query(
-			`SELECT uid, row, number
+			`SELECT uid, row, number, active
        FROM seat
        WHERE hall_uid = $1
        ORDER BY row, number`,
@@ -623,5 +680,30 @@ adminRouter.delete("/users/:uid", authenticate, requireSuper, async (req, res) =
 	} catch (err) {
 		console.error("Failed to delete user:", err);
 		res.status(500).json({ msg: "Failed to delete user" });
+	}
+});
+
+// ----------------------
+// UPDATE SEAT ACTIVE STATUS
+// ----------------------
+adminRouter.patch("/seats/:seat_uid/activate", authenticate, requireSuper, async (req, res) => {
+	const { seat_uid } = req.params;
+	const { active } = req.body;
+
+	if (typeof active !== "boolean") {
+		return res.status(400).json({ msg: "active must be boolean" });
+	}
+
+	try {
+		const { rows } = await pool.query("UPDATE seat SET active = $1 WHERE uid = $2 RETURNING *", [active, seat_uid]);
+
+		if (rows.length === 0) {
+			return res.status(404).json({ msg: "seat not found" });
+		}
+
+		res.json(rows[0]);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ msg: "failed to update seat active status" });
 	}
 });
