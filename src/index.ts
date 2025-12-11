@@ -13,7 +13,8 @@ import paymentsRouter from "./routes/payments";
 import webhookHandler from "./routes/payments_webhook";
 import { authenticate } from "./middleware/auth";
 import clientRouter from "./routes/client";
-import { initSeatsWSS } from "./ws/seats";   // <-- NEW
+import { initSeatsWSS } from "./ws/seats";   
+import path from "path";
 
 if (!process.env.JWT_SECRET) {
 	console.error("JWT_SECRET missing");
@@ -74,6 +75,7 @@ app.use("/admin", adminRouter);
 app.use("/admin/movies", adminMoviesRouter);
 app.use("/api", clientRouter);
 app.use("/api/client", clientRouter);
+app.use("/tickets", express.static(path.join(__dirname, "public", "tickets")));
 app.get("/", (_req, res) => res.json({ service: "cinema-back-end", env: process.env.NODE_ENV }));
 
 app.get("/me", authenticate, (req, res) => res.json({ user: req.user }));
@@ -93,6 +95,7 @@ app.get("/api/db-health", async (_req, res) => {
 		res.status(500).json({ status: "unhealthy", error: (e as Error).message });
 	}
 });
+
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
