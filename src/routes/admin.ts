@@ -682,3 +682,28 @@ adminRouter.delete("/users/:uid", authenticate, requireSuper, async (req, res) =
 		res.status(500).json({ msg: "Failed to delete user" });
 	}
 });
+
+// ----------------------
+// UPDATE SEAT ACTIVE STATUS
+// ----------------------
+adminRouter.patch("/seats/:seat_uid/activate", authenticate, requireSuper, async (req, res) => {
+	const { seat_uid } = req.params;
+	const { active } = req.body;
+
+	if (typeof active !== "boolean") {
+		return res.status(400).json({ msg: "active must be boolean" });
+	}
+
+	try {
+		const { rows } = await pool.query("UPDATE seat SET active = $1 WHERE uid = $2 RETURNING *", [active, seat_uid]);
+
+		if (rows.length === 0) {
+			return res.status(404).json({ msg: "seat not found" });
+		}
+
+		res.json(rows[0]);
+	} catch (err) {
+		console.error(err);
+		res.status(500).json({ msg: "failed to update seat active status" });
+	}
+});
