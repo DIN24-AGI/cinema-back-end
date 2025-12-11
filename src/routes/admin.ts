@@ -362,7 +362,7 @@ adminRouter.get("/hall/:hall_uid/seats", authenticate, async (req, res) => {
 
 	try {
 		const { rows } = await pool.query(
-			`SELECT uid, row, number
+			`SELECT uid, row, number, active
        FROM seat
        WHERE hall_uid = $1
        ORDER BY row, number`,
