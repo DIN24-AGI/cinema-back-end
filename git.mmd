@@ -1,0 +1,143 @@
+%%{init: { 'gitGraph': {'showBranches': true, 'showCommitLabel':true, 'mainBranchName': 'main'}} }%%
+gitGraph
+   commit id: "76750f7 Initial commit" tag: "start"
+   commit id: "30304e1 Azure App Service config"
+   
+   branch dev
+   checkout dev
+   commit id: "e115699 ignore .env"
+   commit id: "8c61c24 auth scaffold"
+   commit id: "cf1e92e auth: return JWT"
+   commit id: "5895fd7 dashboard router"
+   commit id: "9ae5415 delete trash"
+   commit id: "90ce3ef city/cinema/hall CRUD"
+   commit id: "05a3f54 hall activation"
+   commit id: "403f6ee cinema CRUD"
+   commit id: "4e028d3 modify gitignore"
+   commit id: "2514580 restore gitignore"
+   
+   checkout main
+   commit id: "ec2367c fix workflow"
+   commit id: "ff7a8ad trigger deployment"
+   commit id: "604c568 publish profile auth"
+   
+   merge dev tag: "v0.1.0"
+   commit id: "32c0a87 fix build"
+   commit id: "f282a64 add routes" tag: "v0.0.1"
+   
+   checkout dev
+   commit id: "669582e movie endpoints"
+   commit id: "4ddd679 payments routes"
+   commit id: "9fd6f06 stripe + showtime"
+   commit id: "09376e3 seats router"
+   commit id: "99ae9da stripe webhook fix"
+   
+   checkout main
+   merge dev tag: "v0.1.1"
+   
+   checkout dev
+   commit id: "686597f merge main"
+   
+   checkout main
+   commit id: "44041a1 CORS config" tag: "v0.2.0"
+   
+   checkout dev
+   commit id: "aed7289 cinema phone"
+   commit id: "d3b07b5 change password"
+   commit id: "0fb3abc halls active bool"
+   commit id: "caa4158 PUT halls active"
+   
+   checkout main
+   merge dev
+   commit id: "99df8e7 deploy" tag: "v0.2.1"
+   
+   branch fix/fix-cinema-phone
+   commit id: "978324c city + cinema fix"
+   checkout main
+   merge fix/fix-cinema-phone
+   
+   commit id: "78b4654 npm start fix" tag: "v0.2.2"
+   commit id: "867609d health checks" tag: "v0.2.3"
+   commit id: "2660a9d pool import fix" tag: "v0.2.4"
+   commit id: "6455496 JWT + DB checks" tag: "v0.2.5"
+   
+   branch public-app
+   checkout public-app
+   commit id: "3956e77 client endpoints"
+   commit id: "f584d0b GET movies"
+   commit id: "95c781f GET showtime"
+   commit id: "e0b11ab client.ts"
+   commit id: "1d2468d GET movies filter"
+   commit id: "5fe0d70 GET showtimes 7days"
+   
+   checkout main
+   merge public-app tag: "v0.3.0"
+   
+   branch fix/cors
+   checkout fix/cors
+   commit id: "f9c0177 fix cors"
+   checkout main
+   merge fix/cors tag: "v0.3.1"
+   
+   branch feature/manage-schedule
+   checkout feature/manage-schedule
+   commit id: "59aeb04 manage showings"
+   checkout main
+   merge feature/manage-schedule
+   
+   checkout dev
+   commit id: "f99a85d showtime prices"
+   commit id: "32592b4 fetch showtimes"
+   checkout main
+   merge dev tag: "v0.4.0"
+   
+   checkout public-app
+   merge main
+   checkout main
+   merge public-app tag: "v0.4.1"
+   
+   checkout dev
+   commit id: "23a2755 routers bug"
+   commit id: "3f3590c email confirmation"
+   commit id: "b68a557 websocket seats"
+   
+   branch feature/manage-users
+   checkout feature/manage-users
+   commit id: "676c343 add admin"
+   commit id: "5d7596e fix query"
+   commit id: "81817de users CRUD"
+   
+   checkout main
+   merge feature/manage-users tag: "v0.5.0"
+   
+   checkout dev
+   merge main
+   commit id: "577a60c format package.json"
+   checkout main
+   merge dev tag: "v1.0.0"
+   
+   commit id: "0e52b28 handler not router" tag: "v1.0.1"
+   
+   branch fix/schedule
+   checkout fix/schedule
+   commit id: "b87436b showtime price"
+   checkout main
+   merge fix/schedule
+   
+   commit id: "728047f host png" tag: "v1.1.0"
+   
+   branch fix/updateHall
+   checkout fix/updateHall
+   commit id: "d112488 recreate seats"
+   commit id: "50dcaed fix endpoint"
+   commit id: "1ab7dd5 seat status"
+   checkout main
+   merge fix/updateHall
+   
+   branch qr
+   checkout qr
+   commit id: "55feb54 qr"
+   checkout main
+   merge qr tag: "v1.1.1"
+   
+   commit id: "4731cc4 fix get cinemas" tag: "v1.1.2"

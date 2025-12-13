@@ -1,0 +1,135 @@
+* 4731cc4 -  (HEAD -> main, tag: v1.1.2, origin/main, origin/HEAD) fix get cinemas endpoint (22 hours ago) <Gleb Bulygin>
+*   20b5ae7 -  (tag: v1.1.1) Merge pull request #29 from DIN24-AGI/qr (30 hours ago) <Gleb Bulygin>
+|\  
+| *   55feb54 -  qr (30 hours ago) <Igor Bologov>
+| |\  
+| |/  
+|/|   
+* |   945fc7e -  Merge pull request #28 from DIN24-AGI/fix/updateHall (30 hours ago) <Gleb Bulygin>
+|\ \  
+| * | 1ab7dd5 -  (origin/fix/updateHall, fix/updateHall) get seats returns seat status as well (2 days ago) <Gleb Bulygin>
+| * | 50dcaed -  fix endpoint (2 days ago) <Gleb Bulygin>
+| * | d112488 -  add endpoint to recreate seats for a hall (2 days ago) <Gleb Bulygin>
+| | * 728047f -  (tag: v1.1.0) host png on the server side (31 hours ago) <Igor Bologov>
+| |/  
+|/|   
+* | fe48025 -  Merge pull request #27 from DIN24-AGI/fix/schedule (31 hours ago) <alaWilliams>
+|\| 
+| * b87436b -  (origin/fix/schedule, fix/schedule) showtime endpoint takes price (2 days ago) <Gleb Bulygin>
+|/  
+* 0e52b28 -  (tag: v1.0.1) handler not a router (2 days ago) <Igor Bologov>
+*   b95980c -  (tag: v1.0.0) Merge pull request #26 from DIN24-AGI/dev (2 days ago) <alaWilliams>
+|\  
+| * 577a60c -  Fix formatting in package.json (2 days ago) <Gleb Bulygin>
+| *   48288fa -  Merge branch 'main' into dev (2 days ago) <Gleb Bulygin>
+| |\  
+| |/  
+|/|   
+* |   a3cd43f -  (tag: v0.5.0) Merge pull request #25 from DIN24-AGI/feature/manage-users (3 days ago) <Gleb Bulygin>
+|\ \  
+| * | 81817de -  (origin/feature/manage-users) GET users, update, delete (3 days ago) <Ala Williams>
+| * | 5d7596e -  fixing typo in the query (4 days ago) <Ala Williams>
+| * | 676c343 -  add new admin (4 days ago) <Ala Williams>
+|/ /  
+| * b68a557 -  (origin/dev) feat(payments/reservations-status) seat reservation status stream via websock added (4 days ago) <Igor Bologov>
+| * 3f3590c -  feat(webhook) send email confirmation (4 days ago) <Igor Bologov>
+| * 23a2755 -  routers bug (5 days ago) <Igor Bologov>
+|/  
+*   b43b714 -  (tag: v0.4.1) Merge pull request #24 from DIN24-AGI/public-app (8 days ago) <Gleb Bulygin>
+|\  
+| *   ad9416e -  (origin/public-app) Merge branch 'main' into public-app (8 days ago) <alaWilliams>
+| |\  
+| |/  
+|/|   
+* |   f348288 -  (tag: v0.4.0) Merge pull request #23 from DIN24-AGI/dev (13 days ago) <Gleb Bulygin>
+|\ \  
+| * | 32592b4 -  feat(client) added routes to fetch showtimes (13 days ago) <Igor Bologov>
+| * | f99a85d -  feat(admin) router for changing prices in showtime added (13 days ago) <Igor Bologov>
+|/ /  
+* |   21b4088 -  Merge pull request #22 from DIN24-AGI/feature/manage-schedule (13 days ago) <Igor Bologov>
+|\ \  
+| * | 59aeb04 -  (origin/feature/manage-schedule) add endpoints to manage showings to admin and client routers (2 weeks ago) <Gleb Bulygin>
+|/ /  
+* |   643bb4e -  (tag: v0.3.1) Merge pull request #21 from DIN24-AGI/fix/cors (2 weeks ago) <alaWilliams>
+|\ \  
+| * | f9c0177 -  (origin/fix/cors) fix cors (2 weeks ago) <Gleb Bulygin>
+|/ /  
+* |   c831316 -  (tag: v0.3.0) Merge pull request #20 from DIN24-AGI/public-app (2 weeks ago) <Gleb Bulygin>
+|\ \  
+| | * 5fe0d70 -  GET showtimes for a movie (next 7 days) (8 days ago) <Ala Williams>
+| | * 1d2468d -  GET /movies with optional filtering (8 days ago) <Ala Williams>
+| | * e0b11ab -  client.ts (8 days ago) <Ala Williams>
+| | * 95c781f -  // GET showtime with cinema and date (11 days ago) <Ala Williams>
+| |/  
+| * f584d0b -  /GET movies by id & /GET movies (2 weeks ago) <Ala Williams>
+| * 3956e77 -  endpoint for client app started (2 weeks ago) <Ala Williams>
+|/  
+* 6455496 -  (tag: v0.2.5) remove app.ts, add JWT tocken and database url checks (3 weeks ago) <Gleb Bulygin>
+* 2660a9d -  (tag: v0.2.4) fix: missing pool import and declaration for db.heath endpoint (3 weeks ago) <Gleb Bulygin>
+* 867609d -  (tag: v0.2.3) fix: fix hardcoded port app.listen, add health check endpoints to index.js (3 weeks ago) <Gleb Bulygin>
+* 78b4654 -  (tag: v0.2.2) fix: npm start command use index.js instead of app.js (3 weeks ago) <Gleb Bulygin>
+*   1f82838 -  Merge pull request #19 from DIN24-AGI/fix/fix-cinema-phone (3 weeks ago) <alaWilliams>
+|\  
+| * 978324c -  add endpoint to manage city, fix adding cinema endpoint to work correctly with phone (3 weeks ago) <GllBhh>
+|/  
+* 99df8e7 -  (tag: v0.2.1) deploy v0.2.0 (3 weeks ago) <GllBhh>
+*   f3d731c -  Merge pull request #18 from DIN24-AGI/dev (3 weeks ago) <Gleb Bulygin>
+|\  
+| * caa4158 -  added to PUT /halls/:hall_uid so active/inactive can be edited from the edit form (3 weeks ago) <Ala Williams>
+| * 0fb3abc -  added POST /halls to accept active boolean (3 weeks ago) <Ala Williams>
+| * d3b07b5 -  feat(auth): add PUT /auth/change-password for admin (3 weeks ago) <Igor Bologov>
+| * aed7289 -  feat(admin): add phone number field to cinema creation form (3 weeks ago) <Igor Bologov>
+|/  
+*   99b8589 -  Merge pull request #16 from DIN24-AGI/fix/cors-configuration (4 weeks ago) <alaWilliams>
+|\  
+| * 44041a1 -  (tag: v0.2.0, origin/fix/cors-configuration) fix: add CORS configuration and improve CI/CD workflow (4 weeks ago) <GllBhh>
+|/  
+*   0390d30 -  Merge pull request #15 from DIN24-AGI/dev (4 weeks ago) <alaWilliams>
+|\  
+| *   686597f -  Merge main into dev (4 weeks ago) <Igor Bologov>
+| |\  
+| |/  
+|/|   
+* |   0fa8494 -  (tag: v0.1.1) Merge pull request #14 from DIN24-AGI/dev (5 weeks ago) <Gleb Bulygin>
+|\ \  
+| | * 99ae9da -  fix(stripe-webhook): handle raw body correctly for signature verification (4 weeks ago) <Igor Bologov>
+| | * 09376e3 -  feat(router GET) it is possible to get a list of seats now (4 weeks ago) <Igor Bologov>
+| | * 9fd6f06 -  feat(stripe)+ feat(router-admin, post(showtime), template for stripe + showtime to be able to test the stripe) (4 weeks ago) <Igor Bologov>
+| | * 4ddd679 -  feat: add payments routes and webhook (4 weeks ago) <Igor Bologov>
+| | * 669582e -  feat(movie) endpoints POST /api/movies - create a new movie GET /api/movies - list movies (pagination, filters, basic search) GET /api/movies/{id} - retrieve a single movie by id PUT /api/movies/{id} - full replace/update of a movie PATCH /api/movies/{id} - partial update of a movie DELETE /api/movies/{id} - delete a movie (soft-delete recommended) POST /api/movies/{id}/restore - restore a soft-deleted movie POST /api/movies/{id}/poster - upload a poster/file for a movie (multipart or URL accept) (5 weeks ago) <Igor Bologov>
+| |/  
+| *   758465b -  Merge branch 'main' into dev (5 weeks ago) <Gleb Bulygin>
+| |\  
+| |/  
+|/|   
+* |   4f4d644 -  (tag: v0.1.0) Merge pull request #12 from DIN24-AGI/dev (5 weeks ago) <Gleb Bulygin>
+|\ \  
+* | | f282a64 -  (tag: v0.0.1) add routes to src/app/ts, update github workflow (5 weeks ago) <Gleb Bulygin>
+* | | 32c0a87 -  fix build issues (5 weeks ago) <Gleb Bulygin>
+* | |   4a29e34 -  Merge pull request #11 from DIN24-AGI/dev (5 weeks ago) <Gleb Bulygin>
+|\ \ \  
+* \ \ \   683b54e -  Merge pull request #10 from DIN24-AGI/dev (5 weeks ago) <Igor Bologov>
+|\ \ \ \  
+| * \ \ \   8c1c319 -  Merge branch 'main' into dev (5 weeks ago) <Igor Bologov>
+| |\ \ \ \  
+| |/ / / /  
+|/| | | |   
+* | | | | 604c568 -  change azure authentification to publish profile (6 weeks ago) <Gleb Bulygin>
+* | | | | ff7a8ad -  Trigger deployment (6 weeks ago) <Gleb Bulygin>
+* | | | | ec2367c -  fix github workflow (6 weeks ago) <Gleb Bulygin>
+| | | | * 2514580 -  return gitignore back to what it was (5 weeks ago) <Igor Bologov>
+| | | | * 4e028d3 -  modify gitignore (5 weeks ago) <Igor Bologov>
+| | | | * 403f6ee -  feat(admin): implement cinema management routes (CRUD + activation) (5 weeks ago) <Igor Bologov>
+| | | |/  
+| | | * 05a3f54 -  feat(admin): implement hall activation endpoint and finalize full CRUD for cities, cinemas, and halls (5 weeks ago) <Igor Bologov>
+| | |/  
+| | * 90ce3ef -  feat(admin): implement city, cinema and hall management endpoints with auto seat generation (5 weeks ago) <Igor Bologov>
+| |/  
+| * 9ae5415 -  delete trash from .gitignore (5 weeks ago) <Igor Bologov>
+| * 5895fd7 -  feat(router) added new dashboard router returning text (5 weeks ago) <Igor Bologov>
+| * cf1e92e -  feat(auth): return only JWT token from /auth/login (5 weeks ago) <Igor Bologov>
+| * 8c61c24 -  feat(auth): add initial login & registration API scaffold (draft) (6 weeks ago) <Igor Bologov>
+| * e115699 -  chore: ignore .env file (6 weeks ago) <Igor Bologov>
+|/  
+* 30304e1 -  Add or update the Azure App Service build and deployment workflow config (6 weeks ago) <Gleb Bulygin>
+* 76750f7 -  Initial commit (6 weeks ago) <Gleb Bulygin>
